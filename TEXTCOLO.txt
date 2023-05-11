@@ -1,0 +1,4 @@
+MarGreen "Marathon Green" //for use with newsmallfont
+{
+	#001400  #00ff00
+}

@@ -1,0 +1,163 @@
+class MarBulletPuff : ZBulletPuff
+{
+    Default
+    {
+        Decal "BulletChip";
+		//RenderStyle "Add";
+		Alpha 1.0;
+		Scale 0.45;
+		vspeed 0;
+		+FloorClip
+		+PuffOnActors
+		+NoExtremeDeath
+		+ForceXYBillboard
+		-Solid
+    }
+		
+	States
+	{
+	Melee:
+	Spawn:
+		MPF0 A random(2,4) Bright A_StartSound("marathon/sfx/bullets/donk",CHAN_BODY,CHANF_OVERLAP,0.5);
+	Spawn.Cont:
+		#### BCDEFG 2 bright;
+        stop;
+		
+    XDeath:
+		TNT1 A 2 A_StartSound("marathon/sfx/bullets/hit",CHAN_BODY,CHANF_OVERLAP,0.25);
+		Stop;
+		
+    Crash:
+		MPF0 A random(2,4) Bright {A_SpawnItemEx("ZBulletChip");A_StartSound("marathon/sfx/bullets/ricochet",CHAN_BODY,CHANF_OVERLAP,0.45);}
+		goto Spawn.Cont;
+	}
+}
+
+class MarFistPuff : MarBulletPuff
+{
+    Default
+    {
+        Decal "none";
+		DamageType "melee";
+		-NoExtremeDeath //gunching dudes with your hands is funny
+		+ForcePain		//i dunno i remember stun locking something in marathon
+		+PuffGetsOwner
+    }
+
+	States
+	{
+	Melee:
+	XDeath:
+    Crash:
+		TNT1 A 1
+		{
+			//A_GiveToTarget("MarPunched",5);
+			//A_StartSound("marathon/fisting",CHAN_BODY,CHANF_OVERLAP);
+		}
+		stop;
+	Spawn:
+		TNT1 A 1;
+		stop;
+	}
+}
+
+class MarFistPuff_RGG : MarFistPuff
+{
+    Default
+    {
+    }
+
+	States
+	{
+	Melee:
+	Spawn:
+	XDeath:
+    Crash:
+		TNT1 A 5 A_StartSound("yakuza/heavyhit",CHAN_BODY,CHANF_OVERLAP);
+		stop;
+	}
+}
+
+//Casings
+
+class MarPistol_Casing : ZCasing
+{
+    Default
+    {
+		Scale 0.25;
+		Mass 5;
+		//BounceSound "marathon/casing1";
+    }
+
+    States
+    {
+    Spawn:
+        CS00 ABCDEF 2;
+        Loop;
+    Death:
+        #### # -1 {frame=random(0,5);}
+        stop;
+    }
+}
+
+
+class MarRifle_Casing : ZCasing
+{
+    Default
+    {
+		Scale 0.25;
+		Mass 5;
+		//BounceSound "marathon/casing1";
+    }
+
+    States
+    {
+    Spawn:
+        CS01 ABCDEF 2;
+        Loop;
+    Death:
+        #### # -1 {frame=random(0,5);}
+        stop;
+    }
+}
+
+class MarSMG_Casing : ZCasing
+{
+    Default
+    {
+		Scale 0.23;
+		Mass 5;
+		//BounceSound "marathon/casing2";
+    }
+
+    States
+    {
+    Spawn:
+        CS02 ABCDEF 2;
+        Loop;
+    Death:
+        #### # -1 {frame=random(0,5);}
+        stop;
+    }
+}
+
+
+class MarShotShell_Casing : ZCasing
+{
+    Default
+    {
+		Scale 0.335;
+		Mass 5;
+		//BounceSound "marathon/casing2";
+    }
+
+    States
+    {
+    Spawn:
+        CS03 ABCDEF 2;
+        Loop;
+    Death:
+        #### # -1 {frame=random(0,5);}
+        stop;
+    }
+}

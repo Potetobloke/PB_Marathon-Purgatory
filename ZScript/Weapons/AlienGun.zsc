@@ -1,0 +1,294 @@
+/*
+
+	-Alien Gun
+	
+*/
+
+Class MarAlienGun_Ammo : Ammo
+{
+    Default
+    {
+		Inventory.PickupMessage "[UNKNOWN AMMUNITION CLASS]";
+		Inventory.Amount 50;
+		Inventory.MaxAmount 250;
+		Ammo.DropAmount 50;
+		Ammo.BackpackAmount 0;
+		Ammo.BackpackMaxAmount 250;
+		Inventory.PickUpSound "Marathon/Items/Ammo";
+		Inventory.Icon "";
+	}
+	States
+    {
+    Spawn:
+		KKV7 Y -1;
+		Stop;
+	}
+}
+
+class MarAlienGun_Drop:MarathonDummy{
+	states{
+	spawn:
+		TNT1 A 0 nodelay{
+			let wpn=MarHealthCharge1(spawn("MarHealthCharge1",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,wpn,MarFuncs.TS_ALL);
+				spawn("MarAlienGun_Weapon",pos+(-5,7,0),ALLOW_REPLACE);
+			}stop;
+		}
+	}
+
+
+class MarAlienGun_Weapon : MarathonAlienWeapon
+{
+
+	bool altfired;
+    Default
+    {
+		Weapon.SelectionOrder 1000;
+        Weapon.AmmoUse1 1;
+		Weapon.AmmoUse2 1;
+        Weapon.AmmoGive1 35;
+        Weapon.AmmoType1 "MarAlienGun_Ammo";
+		Weapon.AmmoType2 "MarAlienGun_Ammo";
+		
+		Inventory.PickupMessage "( UNKNOWN WEAPON CLASS )";
+		Tag "UNKNOWN WEAPON CLASS";
+		
+		Weapon.WeaponScaleX 1.4;
+		Weapon.WeaponScaleY 1.4;
+    }
+
+	override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+		altfired=false;
+    }
+
+    States
+    {
+	RecoilShit:
+		TNT1 A 1 PB_RecoilReset(2,1,1);
+		loop;
+	
+    Ready:
+		ALWP A 0 A_Overlay(29,"RecoilShit");
+        ALWP A 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		ALWP A 0 A_ClearOverlays(29,30);
+        ALWP A 1 A_Lower(8);
+        Wait;
+    Select:	
+        ALWP A 1 A_Raise(8);
+        Wait;
+
+	Fire:
+		#### B 0 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		ALWP A 1 Bright
+		{
+			A_AlertMonsters(128);
+			PB_RecoilAnim(PSP_WEAPON,4);
+			ZWL_FireProjectile("MarAlienGun_Projectile",0,-1);
+			A_StartSound("marathon/weapons/aliengun/fire",CHAN_WEAPON);
+			
+			if (CountInv("MarAlienGun_Ammo")>0 && invoker.IsPressing(BT_ALTATTACK))
+			{
+				ZWL_FireProjectile("MarAlienGun_Projectile",0,-1,
+				angleOfs:(invoker.altfired==true)?-20:20);
+				A_StartSound("marathon/weapons/aliengun/fire",CHAN_WEAPON);
+			
+				if(!invoker.altfired)invoker.altfired=true;
+				else invoker.altfired=false;
+			}
+
+			//A_StartSound("marathon/weapons/aliengun/fire",CHAN_WEAPON);
+		}
+		ALWP BAB 1 Bright PB_RecoilAnim(PSP_WEAPON,4);
+		#### B 0 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		ALWP A 0 {invoker.recoiloffset_base=0;}
+		ALWP A 3;
+		ALWP A 0 ZWL_JumpIfEmpty("Fire.End");
+		ALWP AAAA 1 ZWL_Refire("Fire");
+        Goto Ready;
+	AltFire:
+		ALWP A 0 ZWL_JumpIfEmpty("Ready");
+		#### B 0 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		ALWP A 1 Bright
+		{
+			A_AlertMonsters(128);
+			PB_RecoilAnim(PSP_WEAPON,4);
+
+			ZWL_FireProjectile("MarAlienGun_Projectile",0,-1,
+			angleOfs:(invoker.altfired==true)?-20:20);
+			A_StartSound("marathon/weapons/aliengun/fire",CHAN_WEAPON);
+			
+			if (CountInv("MarAlienGun_Ammo")>0 && invoker.IsPressing(BT_ATTACK))
+			{
+				ZWL_FireProjectile("MarAlienGun_Projectile",0,-1);
+			}
+			
+			if(!invoker.altfired)invoker.altfired=true;
+			else invoker.altfired=false;
+		}
+		ALWP BAB 1 Bright PB_RecoilAnim(PSP_WEAPON,4);
+		#### B 0 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		ALWP A 0 {invoker.recoiloffset_base=0;}
+		ALWP A 3;
+		ALWP A 0 ZWL_JumpIfEmpty("Fire.End");
+		ALWP AAAA 1 ZWL_Refire("Altfire");
+		goto Ready;
+	Fire.End:
+		ALWP A 4;
+		Goto Ready;
+		Goto Ready;
+    Spawn:
+        ALWP Z -1;
+        Stop;
+    }
+}
+
+class MarAlienGun2_Weapon : MarathonAlienWeapon
+{
+
+	bool altfired;
+    Default
+    {
+		Weapon.SelectionOrder 1000;
+        Weapon.AmmoUse1 1;
+		Weapon.AmmoUse2 1;
+        Weapon.AmmoGive1 30;
+        Weapon.AmmoType1 "MarAlienGun_Ammo";
+		Weapon.AmmoType2 "MarAlienGun_Ammo";
+		
+		Inventory.PickupMessage "( UNKNOWN WEAPON CLASS )";
+		Tag "UNKNOWN WEAPON CLASS";
+		
+		Weapon.WeaponScaleX 1.4;
+		Weapon.WeaponScaleY 1.4;
+    }
+
+	override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+		altfired=false;
+    }
+
+    States
+    {
+	RecoilShit:
+		TNT1 A 1 PB_RecoilReset(2,1,1);
+		loop;
+	
+    Ready:
+		ALW1 A 0 A_Overlay(29,"RecoilShit");
+        ALW1 A 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		#### # 0 A_JumpIf(health <= 0, "Dead.Ass");
+		ALW1 A 0 A_ClearOverlays(29,30);
+        ALW1 A 1 A_Lower(8);
+        Wait;
+    Select:	
+        ALW1 A 1 A_Raise(8);
+        Wait;
+
+	Fire:
+		#### B 0 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		ALW1 B 1 bright 
+		{
+			PB_RecoilAnim(PSP_WEAPON,frandom(1,3));
+			A_AlertMonsters();
+			A_Recoil(0.075);
+			A_WeaponOffset(frandom(-1,1),flags:WOF_INTERPOLATE);
+			ZWL_FireProjectile("MarAlienGun2_Shot",2);
+			A_StartSound("marathon/weapons/aliengun/fire2",CHAN_WEAPON,CHANF_OVERLAP,pitch:frandom(0.98,1.03));
+		}
+		ALW1 A 1;
+		ALW1 A 2 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		ALW1 A 0 ZWL_JumpIfEmpty("Fire.End");
+		ALW1 A 1 ZWL_Refire("Fire.2");
+		ALW1 AAAAA 1 
+		{
+			ZWL_Refire("Fire");
+			A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+			A_ClearOverlays(25,25);
+		}
+		Goto Ready;
+	Fire.End:
+		ALW1 A 4;
+		Goto Ready;
+    Spawn:
+        ALWP Z -1;
+        Stop;
+    }
+}
+
+class MarAlienGun_Projectile : ZExplosive
+{
+    Default
+    {
+        Health 25;
+		Radius 8;
+		Height 12;
+		Speed 25;
+		Scale 0.4;
+		DamageType "Fire";
+		DamageFunction (random(30,40));
+		Obituary "$OB_MPROCKET";
+
+		+PierceArmor
+		
+        +ForceXYBillboard
+		+HitTracer
+		+BloodlessImpact
+		-NoBlockMap
+		+NOEXTREMEDEATH
+    }
+
+	States
+	{
+      Spawn:
+        ALW0 ABCDEF 2 Bright;
+        Loop;
+       Death:
+		ALW0 G 2 Bright A_StartSound("marathon/weapons/aliengun/hit",CHAN_WEAPON,CHANF_OVERLAP);
+		ALW0 HIJ 2 Bright ;
+        Stop;
+	}
+}
+
+class MarAlienGun2_Projectile : MarAlienGun_Projectile
+{
+    Default
+    {
+		Radius 4;
+		Height 6;
+		Speed 45;
+		Scale 0.2;
+		DamageFunction (random(9,11));
+
+		+PierceArmor
+    }
+
+	States
+	{
+      Spawn:
+        ALW0 ABCDEF 2 Bright;
+        Loop;
+       Death:
+		ALW0 G 2 Bright A_StartSound("marathon/weapons/aliengun/hit",CHAN_WEAPON,CHANF_OVERLAP,pitch:1.2);
+		ALW0 HIJ 2 Bright ;
+        Stop;
+	}
+}
+
+class MarAlienGun2_Shot : ZShell
+{
+    Default
+    {
+        ZShell.PelletType "MarAlienGun2_Projectile";
+        ZShell.PelletCount 3;
+        ZShell.Spread 2;
+    }
+}

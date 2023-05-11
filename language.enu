@@ -1,0 +1,6 @@
+[enu]
+
+OPTMNU_SWAY = "Sway Options";
+SWAYMNU_ENABLED = "Enabled";
+SWAYMNU_VERTICAL = "Vertical";
+SWAYMNU_INVERSE = "Inverse";

@@ -1,0 +1,114 @@
+class MarSpawnEffect:MarathonDummy{
+	
+	bool spawned;
+	
+	Default
+    {
+	}
+	
+	action void Mar_ColorRandom(){
+		static const color spcl[] =
+			{
+				"#ffffff", "#fe00ff", "#ffff00", "#00ff00"
+			};
+				int rnd = Random[bruh](0,3);
+			SetShade(spcl[rnd]);
+	}
+	
+	override void PostBeginPlay()
+	{
+		scalex=0.0;
+		A_SetRenderStyle(1.0, STYLE_STENCIL);
+		SetShade("#ffffff");
+		Super.PostBeginPlay();
+	}
+	
+	states{
+	spawn:
+		//fffuck this is gonna mess with performance
+		TNT1 A 1 A_CheckProximity("mar.spawn","MarSecurityOfficer",256);
+		wait;
+	mar.spawn:
+		//TNT1 A random(1,5);
+		44MC Y 0 A_StartSound("marathon/items/teleport",volume:0.65);
+		44MC YYYYY 1 bright
+		{scalex+=0.2;}//scaley+=0.08;}
+		TNT1 A 0
+		{
+			let ammo=MarPistol_Ammo(spawn("MarPistol_Ammo",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+			}stop;
+		}
+}
+
+//oh my goddd i gotta find a better way to do this
+
+//Pistol Ammo
+class MarSpawn_PistolAmmo:MarSpawnEffect{
+	default{
+	}
+	states{
+	spawn:
+		TNT1 A random(7,19);
+	mar.spawn:
+		44MC Y 0 A_StartSound("marathon/items/teleport",volume:0.25);
+		44MC YYYYY 1 bright{scalex+=0.2;Mar_ColorRandom();}
+		TNT1 A 0
+		{
+			let ammo=MarPistol_Ammo(spawn("MarPistol_Ammo",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+			}stop;
+		}
+}
+
+//SMG Ammo
+class MarSpawn_SMGAmmo:MarSpawnEffect{
+	default{
+	}
+	states{
+	spawn:
+		TNT1 A random(1,12);
+	mar.spawn:
+		KKV7 Y 0 A_StartSound("marathon/items/teleport",volume:0.25);
+		KKV7 YYYYY 1 bright{scalex+=0.2;Mar_ColorRandom();}
+		TNT1 A 0
+		{
+			let ammo=MarSMG_Ammo(spawn("MarSMG_Ammo",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+			}stop;
+		}
+}
+
+//Backpack
+
+class MarBackpackReplacement:MarSpawnEffect{
+	default{
+		//height 1;radius 1;
+	}
+	
+	//override void Tick(){}
+	states{
+	mar.spawn:
+		44MC Y 0 A_StartSound("marathon/items/teleport",volume:0.25);
+		44MC YYYYY 1 bright{scalex+=0.2;Mar_ColorRandom();}
+		TNT1 A 1
+		{
+			
+			let ammo1="MarSpawn_PistolAmmo";
+			let ammo2="MarSpawn_SMGAmmo";
+		
+			let ammo=MarPistol_Ammo(spawn("MarPistol_Ammo",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+				spawn(ammo1,pos+(-10,10,0),ALLOW_REPLACE);
+				spawn(ammo1,pos+(10,-10,0),ALLOW_REPLACE);
+				spawn(ammo1,pos+(10,10,0),ALLOW_REPLACE);
+				spawn(ammo1,pos+(-10,-10,0),ALLOW_REPLACE);
+				
+				spawn(ammo2,pos+(0,-10,0),ALLOW_REPLACE);
+				spawn(ammo2,pos+(10,0,0),ALLOW_REPLACE);
+				spawn(ammo2,pos+(0,10,0),ALLOW_REPLACE);
+				spawn(ammo2,pos+(-10,0,0),ALLOW_REPLACE);
+				
+			}stop;
+		}
+}

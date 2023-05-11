@@ -1,0 +1,158 @@
+/*
+
+	-.44 Magnum Mega Class-
+	
+*/
+
+Class MarStimpak : Health
+{
+    Default
+    {
+		Inventory.PickupMessage "[Small Medikit]";
+		Inventory.Amount 10;
+		Inventory.PickUpSound "Marathon/Items/Health";
+	}
+	States
+    {
+    Spawn:
+		MHL0 V -1;
+		Stop;
+	}
+}
+
+Class MarMedikit : Health
+{
+    Default
+    {
+		Inventory.PickupMessage "[Large Medikit]";
+		Inventory.Amount 25;
+		Inventory.PickUpSound "Marathon/Items/Health";
+	}
+	States
+    {
+    Spawn:
+		MHL0 W -1;
+		Stop;
+	}
+}
+
+Class MarHealthCharge1 : Health
+{
+    Default
+    {
+		-COUNTITEM;
+		+INVENTORY.AUTOACTIVATE;
+		+INVENTORY.FANCYPICKUPSOUND;
+		Inventory.PickupMessage "[Small Health Charge]";
+		Inventory.Amount 100;
+		Inventory.MaxAmount 100;
+		Inventory.PickUpSound "Marathon/Items/BigHealth";
+	}
+	States
+    {
+    Spawn:
+		MHL0 X -1;
+		Stop;
+	}
+}
+
+Class MarHealthCharge2 : Health
+{
+    Default
+    {
+		-COUNTITEM;
+		+INVENTORY.AUTOACTIVATE;
+		+INVENTORY.FANCYPICKUPSOUND;
+		Inventory.PickupMessage "[Medium Health Charge]";
+		Inventory.Amount 200;
+		Inventory.MaxAmount 200;
+		Inventory.PickUpSound "Marathon/Items/BigHealth";
+	}
+	States
+    {
+    Spawn:
+		MHL0 Y -1;
+		Stop;
+	}
+}
+
+Class MarHealthCharge3 : Health
+{
+    Default
+    {
+		-COUNTITEM;
+		+INVENTORY.AUTOACTIVATE;
+		+INVENTORY.FANCYPICKUPSOUND;
+		Inventory.PickupMessage "[Large Health Charge]";
+		Inventory.Amount 300;
+		Inventory.MaxAmount 300;
+		Inventory.PickUpSound "Marathon/Items/BigHealth";
+	}
+	States
+    {
+    Spawn:
+		MHL0 Z -1;
+		Stop;
+	}
+}
+
+//Item Spawn Version
+
+//Pistol Ammo
+class MarSpawn_HC2:MarSpawnEffect{
+	default{
+	}
+	states{
+	mar.spawn:
+		44MC Y 0 A_StartSound("marathon/items/teleport",volume:0.25);
+		44MC YYYYY 1 bright{scalex+=0.2;Mar_ColorRandom();}
+		TNT1 A 0
+		{
+			let ammo=MarHealthCharge2(spawn("MarHealthCharge2",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+			}stop;
+		}
+}
+
+
+//Armor
+
+Class MarArmorVest_Light : BasicArmorPickup
+{
+    Default
+    {
+		Radius 20;
+		Height 16;
+		Inventory.PickupMessage "[Security Armor Vest]";
+		Armor.SavePercent 50;
+		Armor.SaveAmount 100;
+		Inventory.PickUpSound "Marathon/Items/Armor";
+		Inventory.Icon "AMVSY0";
+	}
+	States
+    {
+    Spawn:
+		AMVS Y -1;
+		Stop;
+	}
+}
+
+Class MarArmorVest_Heavy : BasicArmorPickup
+{
+    Default
+    {
+		Radius 20;
+		Height 16;
+		Inventory.PickupMessage "[Recon Armor Vest]";
+		Armor.SavePercent 50;
+		Armor.SaveAmount 200;
+		Inventory.PickUpSound "Marathon/Items/Armor";
+		Inventory.Icon "AMVSZ0";
+	}
+	States
+    {
+    Spawn:
+		AMVS Z -1;
+		Stop;
+	}
+}

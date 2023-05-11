@@ -1,0 +1,364 @@
+/*
+
+	-WEAPON BASE-
+
+*/
+
+#include "zscript/Weapons/Fist.zsc"
+#include "zscript/Weapons/Pistol.zsc"
+#include "zscript/Weapons/FusionPistol.zsc"
+#include "zscript/Weapons/Shotgun.zsc"
+#include "zscript/Weapons/AssaultRifle.zsc"
+#include "zscript/Weapons/SMG.zsc"
+#include "zscript/Weapons/RocketLauncher.zsc"
+#include "zscript/Weapons/Flamer.zsc"
+#include "zscript/Weapons/AlienGun.zsc"
+#include "zscript/Weapons/WaveMotionCannon.zsc"
+
+#include "zscript/Weapons/Effects.zsc"
+
+class MarathonWeapon : ZWeapon
+{
+
+	double recoiloffset_base;
+	double recoiloffset_primary;
+	double recoiloffset_secondary;
+
+	int ammoCount2;
+    int magazineSize2;
+	
+	int akimboweapon;  //mostly for hud stuff
+	int secondarymode; //if the second ammo count shows up or not
+	bool isreloading;  //for the pistols and the assault rifle
+	bool islowering;  //to avoid weapons firing or reloading while switching
+	
+	Property MagazineSize2: magazineSize2;
+	
+	//extermely good melee swings (by Boondorl and Agent Ash)
+	int meleehits; //
+	protected array < Actor > swingVictims; //actors hit by the attack
+    protected vector2 swingOfs;
+    protected vector2 swingStep;
+    protected int swingSndCounter; //delay the attack sound
+    const SWINGSTAGGER = 8; // by this much
+	
+    Default
+    {
+		Inventory.PickupMessage " ";
+		Obituary "fucking dead";
+		
+		Weapon.BobSpeed 1.5;
+		Weapon.BobStyle "InverseSmooth";
+		Weapon.BobRangeX 0.0;
+		Weapon.BobRangeY 5.0;
+		Weapon.WeaponScaleX 1.2;
+		Weapon.WeaponScaleY 1.2;
+		
+		Inventory.PickUpSound "Marathon/Items/Weapon";
+		+INVENTORY.IGNORESKILL
+		+WEAPON.NOALERT
+		+WEAPON.AMMO_OPTIONAL
+		+WEAPON.ALT_AMMO_OPTIONAL
+    }
+	
+	//putting new functions here so i dont mess up ZWL's weapon base too much
+	
+	//copy pasted from the base zwl
+	
+	/*
+	Removes rounds from weapon.
+    Params:
+     - Rounds: Number of rounds to remove. 0 means a full magazine. < 0 means to leave -rounds in the weapon.
+     - toInventory: If true, rounds go back to player's inventory.
+    */
+	
+	//virtual ui void DrawHUDParts(ZStatusBar sb,MarathonWeapon wp,MarSecurityOfficer mso){}
+	
+    action void ZWL_UnloadAlt(int rounds = 0, bool toInventory = false)
+    {
+        if (rounds <= 0)
+        {
+            rounds = Max(invoker.ammoCount2 + rounds, 0);
+        }
+
+        int tradeAmt = Min(rounds, invoker.ammoCount2);
+
+        invoker.ammoCount -= tradeAmt;
+
+        Inventory playerAmmo = FindInventory(invoker.ammoType2);
+        if (toInventory && playerAmmo)
+        {
+            playerAmmo.amount += tradeAmt;
+        }
+    }
+	
+	
+	/*
+    Reloads weapon.
+    Params:
+     - rounds: # of rounds to reload. If rounds is 0, reload full magazine, or more, if < 0.
+     - wasteRemaining: If true, remaining ammo is discarded.
+    */
+    action void ZWL_ReloadAlt(int rounds = 0, bool wasteRemaining = false)
+    {
+        if (wasteRemaining)
+        {
+            invoker.ammoCount2 = 0;
+        }
+
+        Inventory playerAmmo = FindInventory(invoker.ammoType2);
+        if (playerAmmo)
+        {
+            if (rounds <= 0)
+            {
+                rounds = invoker.magazineSize2 - invoker.ammoCount2 - rounds;
+            }
+
+            //A_PlaySound(invoker.reloadSound, CHAN_Weapon);
+
+            int tradeAmt = Min(rounds, playerAmmo.amount);
+
+            invoker.ammoCount2 += tradeAmt;
+            playerAmmo.amount -= tradeAmt;
+        }
+    }
+	
+	/*
+    Returns true if weapon has enough ammo in its magazine to fire.
+    Params:
+     - autoReload: Reload weapon if it doesn't have enough ammo.
+     - requireAmmo: If true, overrides Ammo_Optional flag.
+     - ammoCount: How much ammo is required. Defaults to AmmoUse1 if < 0.
+    */
+    virtual bool CheckMagazineAlt(bool autoReload, bool requireAmmo = false, int ammoCount2 = -1)
+    {
+        if (magazineSize2 <= 0)
+            return CheckAmmo(PrimaryFire, false, true);  // Magazine is all ammo in inventory
+
+        if (!requireAmmo && Default.bAmmo_Optional)
+            return true;
+
+        if (self.ammoCount2 < (ammoCount2 < 0 ? ammoUse2 : ammoCount2))
+        {
+            bAmmo_Optional = Default.bAmmo_Optional;
+
+            if (autoReload && CheckAmmo(PrimaryFire, false, true) && owner && owner.player)
+                owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState());
+
+            return false;
+        }
+
+        bAmmo_Optional = true;
+
+        return true;
+    }
+	//ZWL copy-paste ends here
+
+	
+	action void PB_SetWeaponState(statelabel st,int layer=PSP_WEAPON){
+		if(player)player.setpsprite(layer,invoker.findstate(st));
+	}
+
+	
+	override void PostBeginPlay()
+    {
+        Weapon.PostBeginPlay();
+		
+		// If player spawns w/ weapon, make sure it's loaded
+		if (owner && magazineSize > 0)
+        {
+            int tradeAmt = Min(Default.ammoGive1, ammo1.amount);
+            ammo1.amount -= tradeAmt;
+            ammoCount += tradeAmt;
+        }
+		
+        if (owner && magazineSize2 > 0)
+        {
+            int tradeAmt = Min(Default.ammoGive2, ammo2.amount);
+            ammo2.amount -= tradeAmt;
+            ammoCount2 += tradeAmt;
+        }
+    }
+	
+	override void Tick()
+	{
+		ZWeapon.Tick();
+	}
+	
+	
+	
+	
+	//Override the ammo factor function
+	override void ModifyDropAmount(int dropamount)
+	{
+		double droppedammo;
+		//removed any alt ammo if dropped
+		if (bDROPPED) 
+		{droppedammo = 0;}
+
+		if (dropamount > 0)
+		{
+			self.Amount = dropamount;
+		}
+		// Adjust the ammo given by this weapon
+		AmmoGive1 = int(AmmoGive1);
+		AmmoGive2 = int(AmmoGive2 * droppedammo);
+	}
+	
+	//too lazy to have it do it all in one function
+	
+	action void PB_RecoilReset(int amt_a = 1,int amt_b = 1,int amt_c = 1)
+	{
+		
+		if (invoker.recoiloffset_base>0)
+		{
+			invoker.recoiloffset_base--;
+			A_OverlayOffset(PSP_WEAPON,wy:amt_a,WOF_ADD);
+		}
+		
+		//for future reference:
+		//7 = R (main weapon for akimbo)
+		//8 = L (secondary weapon)
+		
+		if (invoker.recoiloffset_primary>0)
+		{
+			invoker.recoiloffset_primary--;
+			A_OverlayOffset(7,wy:amt_b,WOF_ADD);
+		}
+		 
+		if (invoker.recoiloffset_secondary>0)
+		{
+			invoker.recoiloffset_secondary--;
+			A_OverlayOffset(8,wy:amt_c,WOF_ADD);
+		}
+	}
+	
+	action void PB_RecoilAnim(int weplayer = PSP_WEAPON,int amt = 5)
+	{
+		A_OverlayOffset(weplayer,0,amt*-1,WOF_ADD);
+		invoker.recoiloffset_base+=amt;
+	}
+	
+	action void PB_RecoilAnimR(int amt = 5)
+	{
+		A_OverlayOffset(7,0,amt*-1,WOF_ADD);
+		invoker.recoiloffset_primary+=amt;
+	}
+	
+	action void PB_RecoilAnimL(int amt = 5)
+	{
+		A_OverlayOffset(8,0,amt*-1,WOF_ADD);
+		invoker.recoiloffset_secondary+=amt;
+	}
+	
+	
+	//By Boondorl, Gutawer, and Agent Ash
+	// - potetobloke
+	
+	   // Set up the swing: initial coords and the step:
+    action void AAsh_PrepareSwing(double startX, double startY, double stepX, double stepY)
+    {
+        invoker.swingVictims.Clear();
+        invoker.swingOfs = (startX, startY);
+        invoker.swingStep = (stepX, stepY);
+    }
+    
+    // Do the attack and move the offset one step as defined above:
+    action void AAsh_SwingAttack(int damage = 10, double range = 64, class<Actor> pufftype = 'MarFistPuff',sound hitsoundw = "marathon/fisting",sound hitsoundm = "marathon/fisting")
+    {
+		int val;
+		//invoker.();
+        // Get the screen-relative angle/pitch using Gutamatics:
+        GM_Quaternion view = GM_Quaternion.createFromAngles(angle, pitch, roll);
+        GM_Quaternion ofs = GM_Quaternion.createFromAngles(invoker.swingOfs.x, invoker.swingOfs.y, 0);
+        GM_Quaternion res = view.multiplyQuat(ofs);     
+        double aimAng, aimPch;
+        [aimAng, aimPch] = res.toAngles();
+        
+        FLineTraceData hit;
+        LineTrace(
+            aimAng, 
+            range, 
+            aimPch, 
+            TRF_NOSKY|TRF_SOLIDACTORS, 
+            offsetz:height-12, 
+            data: hit
+        );
+        
+        let type = hit.HitType;
+        // Do this if we hit geometry:
+        if (type == TRACE_HitFloor || type == TRACE_HitCeiling || type == TRACE_HitWall)
+        {
+            if (invoker.swingSndCounter <= 0)
+            {
+                invoker.swingSndCounter = SWINGSTAGGER;
+                A_StartSound(hitsoundw,CHAN_6,CHANF_OVERLAP);
+                Spawn(pufftype, hit.hitlocation);
+				//int val = 1 * invoker.meleehits;
+                //A_QuakeEx(val, val, val, 6, 0, 32, "");             
+            }
+        }
+        
+        // Do this if we hit an actor:
+        else if (type == TRACE_HitActor)
+        {
+            let victim = hit.HitActor;
+            // Check the victim is valid and not yet in the array:
+            if (victim && (victim.bSHOOTABLE || victim.bVULNERABLE || victim.bSOLID) && invoker.swingVictims.Find(victim) == invoker.swingVictims.Size())
+            {
+                invoker.swingVictims.Push(victim);
+				
+				// Can be damaged:
+                if (!victim.bDORMANT && (victim.bSHOOTABLE || victim.bVULNERABLE))
+                {
+                    victim.DamageMobj(target, self, damage, 'normal',DMG_USEANGLE);
+                    A_StartSound(hitsoundm,CHAN_7,CHANF_OVERLAP);
+                    // Bleed:
+                    if (!victim.bNOBLOOD)
+                    {
+                        victim.TraceBleed(damage, self);
+                        victim.SpawnBlood(hit.HitLocation, AngleTo(victim), damage);
+						victim.A_FaceTarget();
+						victim.
+						Spawn(pufftype, hit.hitlocation);
+                    }
+                }
+                // Can't be damaged:
+                else
+                    A_StartSound(hitsoundw,CHAN_6,CHANF_OVERLAP);
+					Spawn(pufftype, hit.hitlocation);
+            }
+        }
+        // Debug spot:
+        let spot = Spawn("MarRocket_Smoke", hit.hitlocation);
+        spot.A_SetHealth(1);
+        
+        // Add a step:
+        invoker.swingOfs += invoker.swingStep;
+    }
+	
+    States
+    {
+	RecoilShit:
+		TNT1 A 1 PB_RecoilReset();
+		loop;
+	Lower.Akimbo:
+	Fire.Akimbo:
+	Ready.Akimbo:
+	Reload.Akimbo:
+		TNT1 A 1;
+	stop;
+	Reload.Instant:
+		#### # 0 ZWL_Unload(0,true); 
+		#### # 0 ZWL_Reload();
+		#### # 0 PB_SetWeaponState("ready");
+		stop;
+	Dead.Ass:
+		TNT1 A 0 {A_ClearOverlays(3,40);A_SetBlend("ff 00 00",1.0,32);}
+		TNT1 A 1 A_Lower(20);
+		wait;
+		
+	}	
+}
+
+Class MarathonAlienWeapon : MarathonWeapon{}

@@ -1,0 +1,103 @@
+/*
+
+	-KKV-7 10mm SMG
+	
+*/
+
+Class MarSMG_Ammo : Ammo
+{
+    Default
+    {
+		Inventory.PickupMessage "[10mm Flechette Ammo]";
+		Inventory.Amount 32;
+		Inventory.MaxAmount 320; //256
+		Ammo.DropAmount 32;
+		Ammo.BackpackAmount 64;
+		Ammo.BackpackMaxAmount 320; //320
+		Inventory.PickUpSound "Marathon/Items/Ammo";
+		Inventory.Icon "";
+	}
+	States
+    {
+    Spawn:
+		KKV7 Y -1;
+		Stop;
+	}
+}
+
+class MarSubmachineGun_Weapon : MarathonWeapon
+{
+    Default
+    {
+		Weapon.SelectionOrder 1000;
+		ZWeapon.MagazineSize 32;
+        Weapon.AmmoUse1 2;
+		Weapon.AmmoUse2 1;
+        Weapon.AmmoGive1 32;
+        Weapon.AmmoType1 "MarSMG_Ammo";
+		
+		Inventory.PickupMessage "( KKV-7 10mm SMG )";
+		Tag "KKV-7 10mm SMG";
+		
+		Weapon.WeaponScaleX 1.4;
+		Weapon.WeaponScaleY 1.4;
+    }
+
+	override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+		//secondarymode = 1;
+    }
+
+    States
+    {
+    Ready:
+		KKV7 A 0 A_JumpIf(invoker.ammocount>invoker.magazinesize, "Reload");
+		KKV7 A 0 A_Overlay(29,"RecoilShit");
+        KKV7 A 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		#### # 0 A_JumpIf(health <= 0, "Dead.Ass");
+		KKV7 A 0 A_ClearOverlays(29,30);
+        KKV7 A 1 A_Lower(8);
+        Wait;
+    Select:	
+        KKV7 A 1 A_Raise(8);
+        Wait;
+
+	Fire:
+		KKV7 B 1
+		{
+			A_AlertMonsters(32);
+			PB_RecoilAnim(PSP_WEAPON,frandom(3,4));
+			ZWL_FireHitscan(3,random(6,10),-1,2,1,puffType:"MarBulletPuff"); //nerfed damage
+			A_StartSound("marathon/weapons/kkv7/fire",CHAN_WEAPON);
+			ZWL_EjectCasing("MarSMG_Casing",false,-12,10,7,(30,0,-10));
+			ZWL_EjectCasing("MarSMG_Casing",false,-12,10,7,(30,0,-10));
+		}
+		KKV7 A 2;
+		KKV7 A 0 ZWL_JumpIfEmpty("Fire.End");
+		KKV7 AAAA 1 ZWL_Refire("Fire");
+        Goto Ready;
+	Fire.End:
+		KKV7 A 3;
+		Goto Ready;
+	Reload:
+		KKV7 A 0 A_ClearOverlays(30,30);
+		KKV7 C 10 
+		{
+			ZWL_Unload(0,true);
+			A_StartSound("marathon/weapons/kkv7/reload",CHAN_7,CHANF_OVERLAP);
+		}
+		KKV7 D 11 ZWL_Reload(0,true);
+		KKV7 E 10;
+		KKV7 A 3;
+		KKV7 A 0 ZWL_Refire("Fire");
+		//KKV7 A 5 A_Overlay(30,"KeepWeaponReady");
+		Goto Ready;
+    Spawn:
+        KKV7 Z -1;
+        Stop;
+    }
+}

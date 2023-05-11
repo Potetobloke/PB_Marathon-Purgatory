@@ -1,0 +1,303 @@
+/*
+
+	-WSTE-M5 Combat Shotgun-
+	
+*/
+
+Class MarShotShells_Ammo : Ammo
+{
+    Default
+    {
+		Inventory.PickupMessage "[12 Gauge Shotgun Shells]";
+		Inventory.Amount 2;
+		Inventory.MaxAmount 160;
+		Ammo.DropAmount 2;
+		Ammo.BackpackAmount 32;
+		Ammo.BackpackMaxAmount 160; //200
+		Inventory.PickUpSound "Marathon/Items/Ammo";
+		Inventory.Icon "";
+	}
+	States
+    {
+    Spawn:
+		WSTE Y -1;
+		Stop;
+	}
+}
+
+class MarShotShells_Small:MarathonDummy{
+	states{
+	spawn:
+		TNT1 A 0 nodelay{
+			let ammo=MarShotShells_Ammo(spawn("MarShotShells_Ammo",pos+(random(-3,3),4,0),ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+			spawn("MarShotShells_Ammo",pos+(random(-3,3),-4,0),ALLOW_REPLACE);
+			}stop;
+		}
+	}
+
+class MarShotShells_Group:MarathonDummy{
+	states{
+	spawn:
+		TNT1 A 0 nodelay{
+			let ammo=MarShotShells_Ammo(spawn("MarShotShells_Ammo",pos+(0,0,0),ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+				spawn("MarShotShells_Ammo",pos+(7,7,0),ALLOW_REPLACE);
+				spawn("MarShotShells_Ammo",pos+(7,-7,0),ALLOW_REPLACE);
+				spawn("MarShotShells_Ammo",pos+(-7,7,0),ALLOW_REPLACE);
+				spawn("MarShotShells_Ammo",pos+(-7,-7,0),ALLOW_REPLACE);
+				
+				spawn("MarShotShells_Ammo",pos+(7,0,0),ALLOW_REPLACE);
+				spawn("MarShotShells_Ammo",pos+(-7,0,0),ALLOW_REPLACE);
+				spawn("MarShotShells_Ammo",pos+(0,7,0),ALLOW_REPLACE);
+				spawn("MarShotShells_Ammo",pos+(0,-7,0),ALLOW_REPLACE);
+			}stop;
+		}
+	}
+
+class MarShotgun_Weapon : MarathonWeapon
+{
+	int extraweapon;
+	int fired_r;
+	int fired_l;
+	
+    Default
+    {
+		ZWeapon.MagazineSize 2;
+        Weapon.SelectionOrder 1000;
+        Weapon.AmmoUse1 1;
+        Weapon.AmmoGive1 2;
+        Weapon.AmmoType1 "MarShotShells_Ammo";
+		
+		MarathonWeapon.MagazineSize2 2;
+		Weapon.AmmoUse2 1;
+		Weapon.AmmoGive2 0;
+        Weapon.AmmoType2 "MarShotShells_Ammo";
+		
+		Inventory.PickupMessage "( WSTE-M5 Combat Shotgun )";
+		Tag "WSTE-M5 Combat Shotgun";
+		
+		Weapon.WeaponScaleX 1.25;
+		Weapon.WeaponScaleY 1.25;
+    }
+
+	override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+		akimboweapon = 1;
+    }
+
+    States
+    {
+	RecoilShit:
+		TNT1 A 1 PB_RecoilReset(1,1,1);
+		loop;
+	
+	
+    Ready:
+		WSTE A 0 A_JumpIf(invoker.ammocount>invoker.magazinesize, "Reload");
+		WSTE A 0 A_Overlay(29,"RecoilShit");
+        WSTE A 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		#### # 0 A_JumpIf(health <= 0, "Dead.Ass");
+		WSTE A 0
+		{
+			if (invoker.secondarymode>0)PB_SetWeaponState("Lower.Akimbo");
+		}
+		WSTE A 0 A_ClearOverlays(29,30);
+        WSTE A 1 A_Lower(6);
+        Wait;
+	Lower.Akimbo:
+		TNT1 A 0 {invoker.islowering=true;}
+		TNT1 A 1 A_Lower(6);
+		wait;
+    Select:	
+        WSTE A 1 {A_Raise(6);invoker.secondarymode=0;invoker.islowering=false;}
+        Wait;
+	
+	//firing 	=	14
+	//cycling	=	26
+	//total		=	40
+	
+	Fire:
+		WSTE A 0 {A_StartSound("marathon/weapons/WSTEM5/fire",CHAN_WEAPON,CHANF_OVERLAP,volume:1);A_Recoil(0.5);}
+		WSTE BB 0 bright 
+		{
+			A_AlertMonsters();
+			ZWL_FireHitscan(0.2,random(12,14),pellets:5,5,puffType:"MarBulletPuff");
+			invoker.fired_r++;
+		}
+		WSTE B 1 bright PB_RecoilAnim(PSP_WEAPON,6);
+		WSTE B 1 bright PB_RecoilAnim(PSP_WEAPON,5);
+		WSTE B 1 bright PB_RecoilAnim(PSP_WEAPON,4);
+		WSTE B 1 bright PB_RecoilAnim(PSP_WEAPON,3);
+		WSTE CD 5 bright;
+	Reload:
+	Cycle:
+		WSTE F 4 A_StartSound("marathon/weapons/WSTEM5/cycle",CHAN_7,CHANF_OVERLAP);
+		WSTE G 4 ZWL_Unload(0,true); 
+		WSTE HH 0 
+		{
+			if(invoker.fired_r>0)
+			{
+				ZWL_EjectCasing("MarShotShell_Casing",true,-75,6,12,(25,2,-10));
+				invoker.fired_r--;
+			}
+		}
+		WSTE H 4 ZWL_Reload();
+		WSTE IJ 5;
+		WSTE A 3 ZWL_JumpIfEmpty("Whoopsie");
+		WSTE A 1 ZWL_Refire("Fire");
+        Goto Ready;
+		
+	Whoopsie:
+		WSTE A 3;
+		goto ready;
+		
+	Altfire:
+		WSTE A 0 A_JumpIf(invoker.secondarymode<1,"akimbo.start");
+		#### # 1;
+		goto ready;
+	
+	//the pain
+	
+	akimbo.start:
+		WSTE A 1 A_Overlay(7,"akimbo.r.raise",true);
+		WSTE A 0 
+		{
+			A_Overlay(7,"akimbo.r.raise",true);
+			A_Overlay(8,"akimbo.l.raise",true);
+			A_OverlayOffset(8,48,84);
+			invoker.secondarymode=1;
+			//A_OverlayFlags(7,PSPF_ADDWEAPON|PSPF_ADDBOB,true);
+			//A_OverlayFlags(8,PSPF_FLIP|PSPF_MIRROR,true);
+		}
+		TNT1 AAAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(7,4,0,WOF_ADD);
+			A_OverlayOffset(8,0,-7,WOF_ADD);
+		}
+		goto ready.akimbo;
+	ready.akimbo:
+		TNT1 A 1 A_WeaponReady(WRF_NOFIRE);//A_WeaponReady(ZRF_NOPRIMARY|ZRF_NOSECONDARY);
+		loop;
+	fire.akimbo:
+		TNT1 AAAAAAAAAAAAAA 1 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		goto ready.akimbo;
+	reload.akimbo:
+		TNT1 AAAAAAAAAAAAAAAAAAAAAAAA 1 A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+		goto ready.akimbo;
+		
+	// - Right -
+	akimbo.r.raise:
+		WSTE A 0 
+		{
+			//A_OverlayOffset(8,32,64);
+			A_OverlayFlags(7,PSPF_ADDWEAPON,true);
+		}
+		WSTE A 12;
+	akimbo.r.ready:
+		WSTE A 1
+		{
+			//A_WeaponReady(WRF_NOFIRE);
+			if(invoker.ammocount>0&&invoker.IsPressing(BT_ALTATTACK)&&!invoker.islowering)
+			{PB_SetWeaponState("akimbo.r.fire",7);}
+			else if(invoker.ammocount<2&& !invoker.islowering &&countinv(invoker.ammotype1)>1){PB_SetWeaponState("akimbo.r.cycle",7);}
+		}
+		loop;
+	akimbo.r.fire:
+		WSTE A 0 {PB_SetWeaponState("fire.akimbo",PSP_WEAPON);A_StartSound("marathon/weapons/WSTEM5/fire",CHAN_WEAPON,CHANF_OVERLAP,volume:1);A_Recoil(0.5);}
+		WSTE BB 0 bright 
+		{
+			A_AlertMonsters();
+			ZWL_FireHitscan(0.2,random(12,14),pellets:5,5,puffType:"MarBulletPuff",offset:(0,5,0),flags:ZHF_DontUseAmmo);
+			invoker.ammocount--;
+			invoker.fired_r++;
+		}
+		WSTE B 1 bright PB_RecoilAnimR(6);
+		WSTE B 1 bright PB_RecoilAnimR(5);
+		WSTE B 1 bright PB_RecoilAnimR(4);
+		WSTE B 1 bright PB_RecoilAnimR(3);
+		WSTE CD 5 bright;
+	akimbo.r.cycle:
+		WSTE F 4 {PB_SetWeaponState("reload.akimbo",PSP_WEAPON);A_StartSound("marathon/weapons/WSTEM5/cycle",CHAN_7,CHANF_OVERLAP);}
+		WSTE G 4 ZWL_Unload(0,true); 
+		WSTE HH 0
+		{
+			if(invoker.fired_r>0)
+			{
+				ZWL_EjectCasing("MarShotShell_Casing",true,-75,6,12,(25,7,-10));
+				invoker.fired_r--;
+			}
+		}
+		WSTE H 4 ZWL_Reload();
+		WSTE IJ 5;
+		WSTE A 3;
+		WSTE A 0
+		{
+			if(invoker.ammocount>0&& !invoker.islowering &&invoker.IsPressing(BT_ALTATTACK))
+			{PB_SetWeaponState("akimbo.r.fire",7);}
+		}
+        Goto akimbo.r.ready;
+		
+	// - Left -
+	
+	akimbo.l.raise:
+		WSTE A 0 
+		{
+			A_OverlayOffset(8,48,0);
+			A_OverlayFlags(8,PSPF_ADDWEAPON|PSPF_FLIP|PSPF_MIRROR,true);
+		}
+		WSTE A 12;
+	akimbo.l.ready:
+		WSTE A 1
+		{
+			if(invoker.ammocount2>0&&invoker.IsPressing(BT_ATTACK)&& !invoker.islowering)
+			{PB_SetWeaponState("akimbo.l.fire",8);}
+			else if(invoker.ammocount2<2&& !invoker.islowering &&countinv(invoker.ammotype1)>1){PB_SetWeaponState("akimbo.l.cycle",8);}
+		}
+		loop;
+	akimbo.l.fire:
+		WSTE A 0 {PB_SetWeaponState("fire.akimbo",PSP_WEAPON);A_StartSound("marathon/weapons/WSTEM5/fire",CHAN_WEAPON,CHANF_OVERLAP,volume:1);A_Recoil(0.5);}
+		WSTE BB 0 bright 
+		{
+			A_AlertMonsters();
+			//ZWL_FireHitscan(0.2,random(10,12),pellets:7,7,offset:(0,-5,0),flags:ZHF_DontUseAmmo);
+			ZWL_FireHitscan(0.2,random(12,14),pellets:5,5,puffType:"MarBulletPuff",offset:(0,-5,0),flags:ZHF_DontUseAmmo);
+			invoker.ammocount2--;
+			invoker.fired_l++;
+		}
+		WSTE B 1 bright PB_RecoilAnimL(6);
+		WSTE B 1 bright PB_RecoilAnimL(5);
+		WSTE B 1 bright PB_RecoilAnimL(4);
+		WSTE B 1 bright PB_RecoilAnimL(3);
+		WSTE CD 5 bright;
+	akimbo.l.cycle:
+		WSTE F 4 {PB_SetWeaponState("reload.akimbo",PSP_WEAPON);A_StartSound("marathon/weapons/WSTEM5/cycle",CHAN_7,CHANF_OVERLAP);}
+		WSTE G 4 ZWL_UnloadAlt(0,true);
+		WSTE HH 0
+		{
+			if(invoker.fired_l>0)
+			{
+				ZWL_EjectCasing("MarShotShell_Casing",false,-75,6,12,(25,-7,-10));
+				invoker.fired_l--;
+			}
+		}
+		WSTE H 4 ZWL_ReloadAlt();
+		WSTE IJ 5;
+		WSTE A 3;
+		WSTE A 0
+		{
+			if(invoker.ammocount>0 &&invoker.IsPressing(BT_ATTACK) && !invoker.islowering)
+			{PB_SetWeaponState("akimbo.l.fire",8);}
+		}
+        Goto akimbo.l.ready;
+		
+    Spawn:
+        WSTE Z -1;
+        Stop;
+    }
+}
+

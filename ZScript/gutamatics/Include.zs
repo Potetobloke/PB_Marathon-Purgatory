@@ -1,0 +1,5 @@
+#include "zscript/gutamatics/GlobalMaths.zs"
+#include "zscript/gutamatics/Matrix.zs"
+#include "zscript/gutamatics/Matrix4.zs"
+#include "zscript/gutamatics/Quaternion.zs"
+#include "zscript/gutamatics/VectorUtil.zs"

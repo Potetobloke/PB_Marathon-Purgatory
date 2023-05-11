@@ -1,0 +1,302 @@
+/*
+
+	-SPNKR-XP SSM
+	
+*/
+
+Class MarRocket_Ammo : Ammo
+{
+    Default
+    {
+		Inventory.PickupMessage "[Rocket Pack]";
+		Inventory.Amount 2;
+		Inventory.MaxAmount 16;
+		Ammo.DropAmount 2;
+		Ammo.BackpackAmount 2;
+		Ammo.BackpackMaxAmount 16; //32
+		Inventory.PickUpSound "Marathon/Items/Ammo";
+		Inventory.Icon "";
+	}
+	States
+    {
+    Spawn:
+		SPNK Y -1;
+		Stop;
+	}
+}
+
+class MarRocket_Group:MarathonDummy{
+	states{
+	spawn:
+		TNT1 A 0 nodelay{
+			let ammo=MarRocket_Ammo(spawn("MarRocket_Ammo",pos+(0,7,0),ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+				spawn("MarRocket_Ammo",pos+(0,-7,0),ALLOW_REPLACE);
+			}stop;
+		}
+	}
+	
+class MarRocketLaucher_Drop:MarathonDummy{
+	states{
+	spawn:
+		TNT1 A 0 nodelay{
+			let ammo=MarRocketLauncher_Weapon(spawn("MarRocketLauncher_Weapon",pos,ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+				spawn("MarRocket_Ammo",pos+(-5,7,0),ALLOW_REPLACE);
+			}stop;
+		}
+	}
+
+class MarRocketLauncher_Weapon : MarathonWeapon
+{
+    Default
+    {
+		ZWeapon.MagazineSize 2;
+        Weapon.SelectionOrder 1000;
+        Weapon.AmmoUse1 1;
+        Weapon.AmmoGive1 2;
+        Weapon.AmmoType1 "MarRocket_Ammo";
+		//Weapon.AmmoType2 "MarAssaultRifle_Grenades";
+		Weapon.WeaponScaleX 1.25;
+		Weapon.WeaponScaleY 1.25;
+		
+		Inventory.PickupMessage "( SPNKR-XP SSM )";
+		Tag "SPNKR-XP SSM";
+    }
+
+
+
+    States
+    {
+    Ready:
+		SPNK R 0 A_JumpIf(invoker.ammocount>invoker.magazinesize, "Reload.Instant");
+		SPNK R 0 A_Overlay(29,"RecoilShit");
+        SPNK R 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		#### # 0 A_JumpIf(health <= 0, "Dead.Ass");
+		SPNK R 0 A_ClearOverlays(29,30);
+        SPNK R 1 A_Lower(2);
+        Wait;
+    Select:	
+        SPNK R 1 A_Raise(2);
+        Wait;
+		
+	Fire:
+        SPNK R 0 A_JumpIf(waterlevel > 3, "Fire.Fail");
+        SPNK R 1;
+		
+        SPNK # 0 
+		{
+			A_Recoil(7);
+			A_StartSound("marathon/weapons/spnkr/launch",CHAN_WEAPON);
+			ZWL_FireProjectile("MarRocket_Projectile",0,-1,offset:(0,-6,6));
+		}
+		//look at this mess
+	anim:
+		#### # 1 A_WeaponOffset(-4,30,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,29,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,28,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,27,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,26,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,25,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,24,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,23,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,22,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,21,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,22,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,23,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,26,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,29,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,30,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-3,31,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-1,32,WOF_INTERPOLATE);
+		#### # 3 A_WeaponOffset(0,32,WOF_INTERPOLATE);
+		#### # 0 ZWL_JumpIfEmpty("Fire.End");
+		#### # 1 ZWL_Refire("Fire");
+        Goto Ready;
+	Fire.End:
+		SPNK R 1;
+		Goto Ready;
+	Fire.Fail:
+		SPNK # 8;
+		Goto Ready;
+	Reload:
+		SPNK ############################################# 1 A_Lower(2);
+		SPNK # 20 A_StartSound("marathon/weapons/spnkr/load",CHAN_7);
+		SPNK # 12 ZWL_Reload();
+		SPNK ############################################# 1 A_Raise(2);
+		Goto Ready;
+    Spawn:
+        SPNK Z -1;
+        Stop;
+    }
+}
+
+class MarRocketLauncher_Quad_Weapon : MarathonWeapon
+{
+    Default
+    {
+        Scale 0.8;
+		ZWeapon.MagazineSize 4;
+        Weapon.SelectionOrder 1000;
+        Weapon.AmmoUse1 1;
+        Weapon.AmmoGive1 4;
+        Weapon.AmmoType1 "MarRocket_Ammo";
+		//Weapon.AmmoType2 "MarAssaultRifle_Grenades";
+		Weapon.WeaponScaleX 1.25;
+		Weapon.WeaponScaleY 1.25;
+		
+		Inventory.PickupMessage "( SMACC-QS SSM )";
+		Tag "SMACC-QS SSM";
+    }
+
+
+
+    States
+    {
+    Ready:
+		SPNK S 0 A_JumpIf(invoker.ammocount>invoker.magazinesize, "Reload");
+		SPNK S 0 A_Overlay(29,"RecoilShit");
+        SPNK S 1 ZWL_WeaponReady();
+        Loop;
+
+    Deselect:
+		SPNK S 0 A_ClearOverlays(29,30);
+        SPNK S 1 A_Lower(2);
+        Wait;
+    Select:	
+        SPNK S 1 A_Raise(2);
+        Wait;
+
+    Fire:
+        SPNK S 0 A_JumpIf(waterlevel == 3, "Fire.Fail");
+        SPNK S 1;
+		
+        SPNK # 0 
+		{
+			A_Recoil(7);
+			A_StartSound("marathon/weapons/spnkr/launch",CHAN_WEAPON,pitch:1.1);
+			ZWL_FireProjectile("MarRocket_Projectile",0,-1,offset:(0,0,4));
+			//ZWL_FireProjectile("MarRocket_Projectile",0,-1,offset:(0,-6,4));
+		}
+		//look at this mess
+		#### # 1 A_WeaponOffset(-4,30,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,29,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,28,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,27,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,26,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,25,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,24,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,23,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,22,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,21,WOF_INTERPOLATE);
+		#### # 0 ZWL_JumpIfEmpty("Fire.End");
+		#### # 1 {A_WeaponOffset(-4,22,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+        #### # 1 {A_WeaponOffset(-4,23,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+        #### # 1 {A_WeaponOffset(-4,26,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+        #### # 1 {A_WeaponOffset(-4,29,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+		#### # 1 {A_WeaponOffset(-4,30,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+		#### # 1 {A_WeaponOffset(-3,31,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+        #### # 1 {A_WeaponOffset(-1,32,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+		#### ### 1 {A_WeaponOffset(0,32,WOF_INTERPOLATE);ZWL_Refire("Fire");}
+		goto ready;
+	Fire.End:
+		#### # 1 A_WeaponOffset(-4,22,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,23,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,26,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-4,29,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-4,30,WOF_INTERPOLATE);
+		#### # 1 A_WeaponOffset(-3,31,WOF_INTERPOLATE);
+        #### # 1 A_WeaponOffset(-1,32,WOF_INTERPOLATE);
+		#### # 3 A_WeaponOffset(0,32,WOF_INTERPOLATE);
+        Goto Ready;
+	Fire.Fail:
+		SPNK # 8;
+		Goto Ready;
+	Reload:
+		SPNK ## 1 A_Lower(1);
+		SPNK ############################################# 1 A_Lower(2);
+		SPNK ## 1 A_Lower(1);
+		SPNK # 23 A_StartSound("marathon/weapons/spnkr/load",CHAN_7,pitch:0.7);
+		SPNK # 23 ZWL_Reload();
+		SPNK ## 1 A_Raise(1);
+		SPNK ############################################# 1 A_Raise(2);
+		SPNK ## 1 A_Raise(1);
+		Goto Ready;
+    Spawn:
+        MA75 Z -1;
+        Stop;
+    }
+}
+
+class MarRocket_Projectile : ZExplosive
+{
+    Default
+    {
+        Health 25;
+		Radius 6;
+		Height 6;
+		Speed 25; //faster to compensate for the slow reload
+		Scale 0.55;
+		DamageFunction (25);
+		Obituary "$OB_MPROCKET";
+
+		//MissileType "MarRocket_Smoke";
+
+        -RocketTrail
+		+ForceRadiusDMG
+		+ExtremeDeath
+        +ForceXYBillboard
+		+ForcePain
+        +RollSprite
+		+RollCenter
+		-NoBlockMap
+    }
+
+	States
+	{
+	Spawn:
+		SPNK A 1 Bright A_SpawnItemEx("MarRocket_Smoke");//SpawnPuff("MarRocket_Smoke", pos, angle, 0, 0);
+		Loop;
+	Death:
+		SPNK B 5 bright 
+		{
+			//A_SetRoll(90*frandom(1,4));
+			A_AlertMonsters();
+			A_SetScale(1,1);
+			ZWL_Explode(210,192,90,"explosive");
+			A_StartSound("marathon/weapons/spnkr/boom",CHAN_BODY,CHANF_OVERLAP,1,0.5);
+		}
+		SPNK CDE 5 bright;
+		stop;
+	}
+}
+
+class MarRocket_Smoke : Actor
+{
+	Default
+	{
+		+DONTSPLASH;
+		Radius 1;
+		Height 1;
+		Speed 0;
+		+NoBlockmap;
+		+NoGravity;
+		+FORCEXYBILLBOARD;
+		+CLIENTSIDEONLY;
+		+RollSprite
+		+RollCenter
+		+DontBlast
+		Scale 0.4;
+	}
+		States
+	{
+	Spawn:
+		TNT1 A 2;
+		FX00 Z 1 BRIGHT;
+		FX00 ABECFDG 1;
+		Stop;
+	}
+}

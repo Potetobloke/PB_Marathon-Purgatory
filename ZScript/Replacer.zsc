@@ -1,0 +1,165 @@
+class PB_MarathonGuns_Spawn : EventHandler
+{
+override void CheckReplacement(ReplaceEvent e) {
+	switch (e.Replacee.GetClassName()) {
+	
+	//Ammo Spawn Tables
+	
+	/*static const class<Actor> ClipBoxSpawns[] = //more biased towards the MA75B
+	{"MarAssaultRifle_Ammo","MarAssaultRifle_Ammo","MarSMG_Ammo", "MarPistolAmmo_Group"};
+	
+	static const class<Actor> ShellSpawns[] =
+	{"MarFusionBattery_Ammo","MarShotShells_Ammo"};
+	
+	static const class<Actor> RocketBoxSpawns[] =
+	{"MarRocket_Group","MarGrenadeLauncher_Ammo"};
+	
+	static const class<Actor> CellPackSpawns[] =
+	{"MarWMC_Ammo","MarFlamer_Group"};*/
+	
+	//Ammo Pickups
+		case 'Shell' 				: {e.Replacement = "MarShellSpawns";}							break;
+		case 'ShellBox' 			: {e.Replacement = "MarShotShells_Group";}						break;
+		case 'Clip' 				: {e.Replacement = "MarPistol_Ammo";}							break;
+		case 'ClipBox' 				: {e.Replacement = "MarAmmoBoxSpawns";}							break;
+		case 'RocketAmmo' 			: {e.Replacement = "MarRocket_Ammo";}							break;
+		case 'RocketBox' 			: {e.Replacement = "MarRocketBoxSpawns";}						break;
+		case 'Cell' 				: {e.Replacement = "MarCellSpawns";}							break;
+		case 'CellPack' 			: {e.Replacement = "MarCellPackSpawns";}						break;
+
+	//Powerups
+		case 'Backpack'				: {e.Replacement = "MarBackpackReplacement";}					break;
+	
+	//MarHealthCharge1
+	//MarAlienGun_Drop
+	
+		case 'Berserk'			 	: {e.Replacement = "MarAlienGun_Drop";}							break;
+		case 'Soulsphere'		 	: {e.Replacement = "MarHealthCharge2";}							break;
+		case 'Megasphere'		 	: {e.Replacement = "MarHealthCharge3";}							break;
+
+	
+	//Healing
+		case 'Stimpack'			 	: {e.Replacement = "MarStimpak";}								break;
+		case 'Medikit'			 	: {e.Replacement = "MarMedikit";}								break;
+	
+	//Armor
+		case 'GreenArmor'		 	: {e.Replacement = "MarArmorVest_Light";}						break;
+		case 'BlueArmor'		 	: {e.Replacement = "MarArmorVest_Heavy";}						break;
+		//case 'GreenArmor'		 	: {e.Replacement = "MarArmorVest_Light";}						break;
+		//case 'BlueArmor'		 	: {e.Replacement = "MarArmorAndHealth";}						break;
+
+	//Weapon Spawn Tables
+	
+	/*static const class<Actor> ChainsawSpawns[] =
+	{"MarPistol_Weapon","MarSubmachineGun_Weapon"};
+	
+	static const class<Actor> ChaingunSpawns[] =
+	{"MarAssaultRifle_Weapon","MarSubmachineGun_Weapon","MarAssaultRifle_Weapon"};
+	
+	case 'Chaingun' 			: {e.Replacement = ChaingunSpawns[random[am](0,2)];}*/
+
+	//Weapons
+		case 'Chainsaw' 			: {e.Replacement = "MarChainsawSpawns";}						break;
+		case 'Pistol' 				: {e.Replacement = "MarPistol_Weapon";}							break;
+		case 'Shotgun' 				: {e.Replacement = "MarShotgunSpawns";}							break;
+		case 'SuperShotgun' 		: {e.Replacement = "MarShotgun_Weapon";}						break;
+		case 'Chaingun' 			: {e.Replacement = "MarChainGunSpawns";}						break;
+		case 'PlasmaRifle' 			: {e.Replacement = "MarFlamethrower_Weapon";}					break;
+		case 'RocketLauncher'		: {e.Replacement = "MarRocketLaucher_Drop";}					break;
+		case 'BFG9000'		 		: {e.Replacement = "MarWaveMotionCannon_Weapon";}				break;
+		}
+	e.IsFinal = false;
+	}
+}
+
+//random spawners
+
+//Weapons
+class MarChainsawSpawns:RandomSpawner{
+	default{
+		dropitem "MarPistol_Weapon",256,10;
+		dropitem "MarSubmachineGun_Weapon",256,12;	
+	}
+}
+
+class MarShotgunSpawns:RandomSpawner{
+	default{
+		dropitem "MarFusionPistol_Weapon",256,14;
+		dropitem "MarShotgun_Weapon",256,5;	//very rarely spawns
+	}
+}
+
+class MarChaingunSpawns:RandomSpawner{
+	default{
+		dropitem "MarAssaultRifle_Weapon",256,12;
+		dropitem "MarSubmachineGun_Weapon",256,10;	
+	}
+}
+
+//Ammo
+
+class MarShellSpawns:RandomSpawner{
+	default{
+		dropitem "MarFusionBattery_Ammo",256,9;
+		dropitem "MarShotShells_Small",256,7;
+	}
+}
+
+class MarAmmoBoxSpawns:RandomSpawner{
+	default{
+		dropitem "MarAssaultRifle_Ammo",256,12;
+		dropitem "MarSMG_Ammo",256,10;
+		dropitem "MarPistolAmmo_Group",256,8;
+	}
+}
+
+class MarRocketBoxSpawns:RandomSpawner{
+	default{
+		dropitem "MarGrenadeLauncher_Ammo",256,15;
+		dropitem "MarRocket_Group",256,13;
+	}
+}
+
+class MarCellSpawns:RandomSpawner{
+	default{
+		dropitem "MarGrenadeLauncher_Ammo",256,12;
+		dropitem "MarFlamer_Ammo",256,15;
+	}
+}
+
+class MarCellPackSpawns:RandomSpawner{
+	default{
+		dropitem "MarWMC_Ammo",256,15;
+		dropitem "MarFlamer_Group",256,11;
+	}
+}
+
+
+
+
+
+
+//I don't get why this isn't a GZDoom function
+//I had to rip this from Hideous Destructor because I am a lazy hack
+
+struct MarFuncs play{
+	//for map stuff, by Matt (Hideous Destructor)
+	static void TransferSpecials(actor source,actor dest,int flags=0){
+		dest.changetid(source.tid);
+		dest.bCountSecret=source.bCountSecret;
+		dest.special=source.special;
+		for(int i=0;i<5;i++){
+			dest.args[i]=source.args[i];
+		}
+		if(flags&TS_ANGLE){
+			dest.angle=source.angle;
+			dest.pitch=source.pitch;
+		}
+		if(flags&TS_VEL)dest.vel=source.vel;
+	}
+	enum TransferSpecialsFlags{
+		TS_ANGLE=1,
+		TS_VEL=2,
+		TS_ALL=TS_ANGLE|TS_VEL,
+	}
+}

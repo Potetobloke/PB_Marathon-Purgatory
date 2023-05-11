@@ -1,0 +1,22 @@
+(MAIN STUFF IN THE MOD ITSELF)
+
+	--dodopop-- 
+ [ZScript Weapon Library]
+
+	--Boondorl--
+ [Weapon sway]
+ 
+	--Bungie--
+ [literally every asset from Marathon]
+ 
+	--TerminusEst13--
+ [Samsara (although i mostly used it as a secondary reference)]
+ 
+	--Hopper--
+ [Wave Motion Cannon first person Sprite]
+ 
+	--Melodica--
+ [WMC 3d beam effect because it looks cool]
+ 
+ 	--SilentW--
+ [helping me with the WMC]

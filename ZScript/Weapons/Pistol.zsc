@@ -1,0 +1,308 @@
+/*
+
+	-.44 Magnum Mega Class-
+	
+*/
+
+Class MarPistol_Ammo : Ammo
+{
+    Default
+    {
+		Inventory.PickupMessage "[.44 Magnum Ammo]";
+		Inventory.Amount 8;
+		Inventory.MaxAmount 400;
+		Ammo.DropAmount 8;
+		Ammo.BackpackAmount 32;
+		Ammo.BackpackMaxAmount 400; //480
+		Inventory.PickUpSound "Marathon/Items/Ammo";
+		Inventory.Icon "44MCY0";
+		-DROPPED
+	}
+	
+	States
+    {
+    Spawn:
+		44MC Y -1;
+		Stop;
+	}
+}
+
+class MarPistolAmmo_Group:MarathonDummy{
+	states{
+	spawn:
+		TNT1 A 0 nodelay{
+			let ammo=MarPistol_Ammo(spawn("MarPistol_Ammo",pos+(5,5,0),ALLOW_REPLACE));
+			MarFuncs.TransferSpecials(self,ammo,MarFuncs.TS_ALL);
+				spawn("MarPistol_Ammo",pos+(5,-5,0),ALLOW_REPLACE);
+				spawn("MarPistol_Ammo",pos+(-5,5,0),ALLOW_REPLACE);
+				spawn("MarPistol_Ammo",pos+(-5,-5,0),ALLOW_REPLACE);
+			}stop;
+		}
+	}
+
+class MarPistol_Weapon : MarathonWeapon
+{
+	int extraweapon;
+	int isfiring;
+	
+    Default
+    {
+        //Scale 0.25;
+		ZWeapon.MagazineSize 8;
+        Weapon.SelectionOrder 1000;
+        Weapon.AmmoUse1 1;
+        Weapon.AmmoGive1 8;
+        Weapon.AmmoType1 "MarPistol_Ammo";
+		
+		MarathonWeapon.MagazineSize2 8;
+		Weapon.AmmoUse2 1;
+        Weapon.AmmoGive2 8;
+        Weapon.AmmoType2 "MarPistol_Ammo";
+		Inventory.PickupMessage "( .44 Magnum Mega Class )";
+		Tag ".44 Magnum Mega Class";
+    }
+
+	override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+		akimboweapon = 1;
+    }
+
+    States
+    {
+    Ready:
+		KKV7 A 0 A_JumpIf(invoker.ammocount>invoker.magazinesize, "Reload");
+		44MC A 0 A_Overlay(29,"RecoilShit");
+        44MC A 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		#### # 0 A_JumpIf(health <= 0, "Dead.Ass");
+		44MC A 0
+		{
+			if (invoker.secondarymode>0)PB_SetWeaponState("Lower.Akimbo");
+		}
+		44MC A 0 A_ClearOverlays(29,30);
+        44MC A 1 A_Lower(8);
+        Wait;
+	Lower.Akimbo:
+		TNT1 A 0 {invoker.isreloading=true;}
+		TNT1 A 1 A_Lower(8);
+		wait;
+    Select:	
+        44MC A 1 {A_Raise(8);invoker.secondarymode=0;invoker.isreloading=false;}
+        Wait;
+
+	Fire:
+		44MC B 0 bright 
+		{
+			A_Recoil(0.075);
+			A_AlertMonsters();
+			ZWL_FireHitscan(0.5,random(15,23),puffType:"MarBulletPuff");
+			A_StartSound("marathon/weapons/44MC/fire",CHAN_WEAPON,CHANF_OVERLAP);
+			ZWL_EjectCasing("MarPistol_Casing",false,-12,10,5,(31,0,-11));
+		}
+		44MC BB 1 bright PB_RecoilAnim(PSP_WEAPON,6);
+		44MC BB 1 bright PB_RecoilAnim(PSP_WEAPON,3);
+		44MC C 3 bright;
+		44MC DE 4;
+		44MC A 4;
+		44MC A 0 ZWL_JumpIfEmpty("Fire.End");
+		44MC A 3 ZWL_Refire("Fire");
+        Goto Ready;
+	Fire.End:
+		44MC A 1;
+		Goto Ready;
+	Reload:
+		44MC A 0 A_ClearOverlays(30,30);
+		44MC F 11 
+		{
+			ZWL_Unload(0,true);
+			//A_StartSound("marathon/weapons/44MC/reload",CHAN_7,CHANF_OVERLAP);
+		}
+		44MC G 11 {ZWL_Reload(0,true);A_StartSound("marathon/weapons/44MC/reload",CHAN_7);}
+		44MC H 11;
+		44MC A 0 ZWL_Refire("Fire");
+		Goto Ready;
+	Altfire:
+		44MC A 0 A_JumpIf(invoker.secondarymode<1,"akimbo.start");
+		#### # 1;
+		goto ready;
+	
+	//the pain
+	
+	akimbo.start:
+		44MC A 1 A_Overlay(7,"akimbo.r.raise",true);
+		44MC A 0 
+		{
+			A_Overlay(7,"akimbo.r.raise",true);
+			A_Overlay(8,"akimbo.l.raise",true);
+			A_OverlayOffset(8,48,84);
+			invoker.secondarymode=1;
+			//A_OverlayFlags(7,PSPF_ADDWEAPON|PSPF_ADDBOB,true);
+			//A_OverlayFlags(8,PSPF_FLIP|PSPF_MIRROR,true);
+		}
+		TNT1 AAAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(7,4,0,WOF_ADD);
+			A_OverlayOffset(8,0,-7,WOF_ADD);
+		}
+		goto ready.akimbo;
+	ready.akimbo:
+		TNT1 A 1 {A_WeaponReady(WRF_NOFIRE);invoker.isreloading=false;}//A_WeaponReady(ZRF_NOPRIMARY|ZRF_NOSECONDARY);
+		loop;
+	fire.akimbo:
+		TNT1 A 22;//{invoker.isfiring=1;}
+		goto ready.akimbo;
+	reload.akimbo:
+		TNT1 A 75 {invoker.isreloading=true;}
+		TNT1 A 1 {invoker.isreloading=false;}
+		goto ready.akimbo;
+		
+	// - Right -
+	akimbo.r.raise:
+		44MC A 0 
+		{
+			//A_OverlayOffset(8,32,64);
+			A_OverlayFlags(7,PSPF_ADDWEAPON,true);
+		}
+		44MC A 12;
+	akimbo.r.ready:
+		44MC A 1
+		{
+			//A_WeaponReady(WRF_NOFIRE);
+			if(invoker.ammocount>0 && !invoker.isreloading 
+			&& invoker.IsPressing(BT_ATTACK))
+			{PB_SetWeaponState("akimbo.r.fire",7);}
+			else if(invoker.ammocount<1 && !invoker.isfiring>0 && !invoker.isreloading && countinv("MarPistol_Ammo")>0){PB_SetWeaponState("akimbo.r.reload.start",7);}
+		}
+		loop;
+	akimbo.r.fire:
+		44MC B 0 bright 
+		{
+			A_Recoil(0.075);
+			PB_SetWeaponState("fire.akimbo",PSP_WEAPON);
+			A_AlertMonsters();
+			ZWL_FireHitscan(1.25,random(15,23),puffType:"MarBulletPuff",offset:(0,5,0),flags:ZHF_DontUseAmmo);
+			A_StartSound("marathon/weapons/44MC/fire",CHAN_WEAPON,CHANF_OVERLAP);
+			ZWL_EjectCasing("MarPistol_Casing",false,-12,10,5,(31,6,-11));
+			invoker.ammocount--;
+		}
+		44MC BB 1 bright PB_RecoilAnimR(6);
+		44MC BB 1 bright PB_RecoilAnimR(3);
+		44MC C 3 bright;
+		44MC DE 4;
+		44MC A 4;
+		44MC A 0; //ZWL_JumpIfEmpty("Fire.End");
+		44MC AAA 1
+		{
+			if(invoker.ammocount>0 && !invoker.isreloading  
+			&& invoker.IsPressing(BT_ATTACK))
+			{PB_SetWeaponState("akimbo.r.fire",7);}
+		}
+        Goto akimbo.r.ready;
+	
+	//59 tics!!!
+	
+	akimbo.r.reload.start:
+	44MC A 0 PB_SetWeaponState("reload.akimbo");
+	44MC AAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(8,0,7.5,WOF_ADD);
+		}
+	44MC A 4 A_OverlayOffset(8,0,9,WOF_ADD);
+	akimbo.r.reload:
+		44MC A 0 A_ClearOverlays(30,30);
+		44MC F 11 
+		{
+			ZWL_Unload(0,true);
+			//A_StartSound("marathon/weapons/44MC/reload",CHAN_7);
+		}
+		44MC G 11 {ZWL_Reload(0,true);A_StartSound("marathon/weapons/44MC/reload",CHAN_7);}
+		44MC H 11;
+		44MC A 8;
+	akimbo.r.reload.end:
+	44MC A 1 A_OverlayOffset(8,0,-9,WOF_ADD);
+	44MC AAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(8,0,-7.5,WOF_ADD);
+		}
+	44MC A 0 PB_SetWeaponState("ready.akimbo");
+	goto akimbo.r.ready;
+		
+	// - Left -
+	
+	akimbo.l.raise:
+		44MC A 0 
+		{
+			A_OverlayOffset(8,48,0);
+			A_OverlayFlags(8,PSPF_ADDWEAPON|PSPF_FLIP|PSPF_MIRROR,true);
+		}
+		44MC A 12;
+	akimbo.l.ready:
+		44MC A 1
+		{
+			if(invoker.ammocount2>0 && !invoker.isreloading 
+			&& invoker.IsPressing(BT_ALTATTACK))
+			{PB_SetWeaponState("akimbo.l.fire",8);}
+			else if(invoker.ammocount2<1  && !invoker.isfiring>0 && !invoker.isreloading && countinv("MarPistol_Ammo")>0){PB_SetWeaponState("akimbo.l.reload.start",8);}
+		}
+		loop;
+	akimbo.l.fire:
+		44MC B 0 bright 
+		{
+			A_Recoil(0.075);
+			PB_SetWeaponState("fire.akimbo",PSP_WEAPON);
+			A_AlertMonsters();
+			ZWL_FireHitscan(1.25,random(15,23),puffType:"MarBulletPuff",offset:(0,-5,0),flags:ZHF_DontUseAmmo);
+			A_StartSound("marathon/weapons/44MC/fire",CHAN_WEAPON,CHANF_OVERLAP);
+			ZWL_EjectCasing("MarPistol_Casing",true,-12,10,5,(31,-6,-11));
+			invoker.ammocount2--;
+		}
+		44MC BB 1 bright PB_RecoilAnimL(6);
+		44MC BB 1 bright PB_RecoilAnimL(3);
+		44MC C 3 bright;
+		44MC DE 4;
+		44MC A 4;
+		44MC A 0; //ZWL_JumpIfEmpty("Fire.End");
+		44MC AAA 1
+		{
+			if(invoker.ammocount2>0 && !invoker.isreloading 
+			&& invoker.IsPressing(BT_ALTATTACK))
+			{PB_SetWeaponState("akimbo.l.fire",8);}
+		}
+        Goto akimbo.l.ready;
+	
+	//59 tics
+	
+	akimbo.l.reload.start:
+	44MC A 0 PB_SetWeaponState("reload.akimbo");
+	44MC AAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(7,0,7.5,WOF_ADD);
+		}
+	44MC A 4 A_OverlayOffset(7,0,9,WOF_ADD);
+	akimbo.l.reload:
+		44MC A 0 A_ClearOverlays(30,30);
+		44MC F 11 
+		{
+			ZWL_UnloadAlt(0,true);
+			//A_StartSound("marathon/weapons/44MC/reload",CHAN_7);
+		}
+		44MC G 11 {ZWL_ReloadAlt(0,true);A_StartSound("marathon/weapons/44MC/reload",CHAN_7);}
+		44MC H 11;
+		44MC A 8;
+	akimbo.l.reload.end:
+	44MC A 1 A_OverlayOffset(7,0,-9,WOF_ADD);
+	44MC AAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(7,0,-7.5,WOF_ADD);
+		}
+	44MC A 0 PB_SetWeaponState("ready.akimbo");
+		goto akimbo.l.ready;
+	
+    Spawn:
+        44MC Z -1;
+        Stop;
+    }
+}

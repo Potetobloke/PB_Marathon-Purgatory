@@ -1,0 +1,68 @@
+//
+$random marathon/sfx/bullets/ricochet	{marpuff/ric1 marpuff/ric2}	
+$random marathon/sfx/bullets/hit		{marpuff/meat1 marpuff/meat2 marpuff/meat3}	
+
+marpuff/ric1	"Sounds/Effects/Ricochet1.wav"	$limit marpuff/ric1 0
+marpuff/ric2	"Sounds/Effects/Ricochet2.wav"	$limit marpuff/ric2 0
+
+marpuff/meat1	"Sounds/Effects/HitMeat1.wav"	$limit marpuff/meat1 0
+marpuff/meat2	"Sounds/Effects/HitMeat2.wav"	$limit marpuff/meat2 0
+marpuff/meat3	"Sounds/Effects/HitMeat3.wav"	$limit marpuff/meat3 0
+
+marathon/sfx/bullets/donk			"Sounds/Effects/Donk.wav"
+
+marathon/fisting					"Sounds/Weapons/Fists/Paunch.wav"
+yakuza/heavyhit						"Sounds/Weapons/Fists/Komaki.ogg"
+
+//
+
+marathon/weapons/ma75/fire			"Sounds/Weapons/AssaultRifle/MA75Fire.wav"
+marathon/weapons/ma75/grenade		"Sounds/Weapons/AssaultRifle/GrenadeShot.wav"
+marathon/weapons/ma75/grenadereload	"Sounds/Weapons/AssaultRifle/GrenadeReload.wav"
+marathon/weapons/ma75/dry			"Sounds/Weapons/AssaultRifle/MA75Dry.wav"
+marathon/weapons/ma75/reload		"Sounds/Weapons/AssaultRifle/MA75Reload.wav"
+marathon/weapons/ma75/boom			"Sounds/Effects/GrenadeBoom.wav"
+$limit marathon/weapons/ma75/boom 0
+
+marathon/weapons/fusionpistol/fire	"Sounds/Weapons/FusionPistol/FusionShot.wav"
+marathon/weapons/fusionpistol/fire2 "Sounds/Weapons/FusionPistol/FusionShot2.wav"
+marathon/weapons/fusionpistol/beep	"Sounds/Weapons/FusionPistol/FusionBeep.wav"
+marathon/weapons/fusionpistol/charge	"Sounds/Weapons/FusionPistol/FusionCharge.wav"
+
+marathon/weapons/fusionpistol/hit	"Sounds/Weapons/FusionPistol/FusionHit.wav"
+marathon/weapons/fusionpistol/boom	"Sounds/Effects/GrenadeBoom.wav"
+$limit marathon/weapons/fusionpistol/hit 0
+
+$random marathon/weapons/44mc/fire		{44mc/fire1 44mc/fire2}		
+44mc/fire1		"Sounds/Weapons/Magnum/MagnumShot1.wav"
+44mc/fire2		"Sounds/Weapons/Magnum/MagnumShot2.wav"
+marathon/weapons/44mc/reload		"Sounds/Weapons/Magnum/MagnumReload.wav"
+
+$random marathon/weapons/wstem5/fire	{wstem5/fire1 wstem5/fire2}		
+wstem5/fire1		"Sounds/Weapons/Shotgun/WSTEShot1.wav"
+wstem5/fire2		"Sounds/Weapons/Shotgun/WSTEShot2.wav"
+marathon/weapons/wstem5/cycle		"Sounds/Weapons/Shotgun/WSTECycle.wav"
+
+marathon/weapons/kkv7/fire			"Sounds/Weapons/SMG/SMGShot.wav"
+marathon/weapons/kkv7/reload		"Sounds/Weapons/SMG/SMGReload.wav"
+
+marathon/weapons/spnkr/launch		"Sounds/Weapons/Spanker/RocketLaunch.wav"
+marathon/weapons/spnkr/load			"Sounds/Weapons/Spanker/RocketLoad.wav"
+marathon/weapons/spnkr/boom			"Sounds/Effects/RocketBoom.wav"
+$limit marathon/weapons/spnkr/boom 0
+
+marathon/weapons/tozt7/fire			"Sounds/Weapons/Flamer/FlamerToast.wav"
+
+marathon/weapons/wmc/fire			"Sounds/Weapons/YugeCannon/Fire.ogg"
+marathon/weapons/wmc/barrel			"Sounds/Weapons/YugeCannon/Barrel.ogg"
+
+marathon/weapons/aliengun/fire		"Sounds/Weapons/AlienGun/AlienShot.wav"
+marathon/weapons/aliengun/fire2		"Sounds/Weapons/AlienGun/AlienShot2.wav"
+marathon/weapons/aliengun/hit		"Sounds/Weapons/AlienGun/AlienHit.wav"
+
+marathon/weapons/wmc/charge			"Sounds/Weapons/YugeCannon/Charge.ogg"
+marathon/weapons/wmc/beep			"Sounds/Weapons/YugeCannon/beep.ogg"
+marathon/weapons/wmc/beep2			"Sounds/Weapons/YugeCannon/beep2.ogg"
+
+marathon/weapons/wmc/boom			"Sounds/Weapons/YugeCannon/Boom.ogg"
+$limit marathon/weapons/wmc/boom 0

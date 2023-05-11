@@ -1,0 +1,223 @@
+class MarFist_Weapon : MarathonWeapon
+{
+	int isattacking;
+	
+    Default
+    {
+		Tag "Fists";
+		
+		Weapon.WeaponScaleX 1.65;
+		Weapon.WeaponScaleY 1.65;
+		//Weapon.Kickback 5;
+		
+		+Inventory.Undroppable
+    }
+	
+	action void Mar_Fisting(double dmg = 10,double dmg2 = 60,double minvel = 49,double hitrange = 55, bool hitstop = true,
+	StateLabel hitstopstate = "Attacked",sound hitsound = "marathon/fisting",class<actor> hitpuff = "MarFistPuff"){
+		flinetracedata poorbastard;
+		bool paunch=linetrace(
+			angle,hitrange,pitch,
+			TRF_NOSKY,
+			offsetz:height-12,
+			data:poorbastard
+		);
+		if(!paunch)return;
+
+	actor victim=poorbastard.hitactor;
+
+		if(poorbastard.hitactor || !poorbastard.hitactor){
+			A_CustomPunch(((momx*momx) + (momy*momy) >= minvel)?dmg2:dmg,true,CPF_NOTURN,hitpuff,hitrange+5);
+			A_StartSound(hitsound,CHAN_7);
+			if (hitstop==true) {PB_SetWeaponState(hitstopstate,OverlayID());}
+			return;
+		}
+	}
+	
+	override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+		akimboweapon = 1;
+    }
+
+    States
+    {
+    Ready:
+		MML0 A 0 A_Overlay(29,"RecoilShit");
+        MML0 A 1 ZWL_WeaponReady(ZRF_NoPartialReload);
+        Loop;
+
+    Deselect:
+		#### # 0 A_JumpIf(health <= 0, "Dead.Ass");
+		MML0 A 0
+		{
+			if (invoker.secondarymode>0)PB_SetWeaponState("Lower.Akimbo");
+		}
+		MML0 A 0 A_ClearOverlays(29,30);
+        MML0 A 1 A_Lower(9);
+        Wait;
+	Lower.Akimbo:
+		TNT1 A 1 A_Lower(9);
+		wait;
+    Select:	
+        MML0 A 1 {A_Raise(9);invoker.secondarymode=0;}
+        Wait;
+
+	Fire:
+		MML0 A 0 A_Overlay(15,"Attack.Right");
+		MML0 BCDD 1 PB_RecoilAnim(PSP_WEAPON,2);
+		MML0 D 1;
+		MML0 EFHCB 3;
+		MML0 B 0 ZWL_Refire("fire");
+		Goto Ready;
+	
+	//dual fist stuff
+	
+	Attack.Right:
+		TNT1 AAAAA 0;
+		TNT1 AAAAA 1 Mar_Fisting();
+		stop;
+		
+	Attack.Left:
+		TNT1 AAAAA 0;
+		TNT1 AAAAA 1 Mar_Fisting();
+		stop;
+	Attacked:
+		TNT1 A 1;
+		stop;
+	
+	fire.akimbo.r:
+		TNT1 A 0 
+		{
+			A_OverlayOffset(8,0,0,WOF_INTERPOLATE);
+			A_OverlayOffset(7,0,0,WOF_INTERPOLATE);
+		}
+		TNT1 A 1 
+		{
+			A_OverlayOffset(8,1,0.5,WOF_ADD|WOF_INTERPOLATE);
+		}
+		TNT1 AAAAAA 1 A_OverlayOffset(8,2,1,WOF_ADD|WOF_INTERPOLATE);
+		TNT1 AAAAAAAAAAAA 1 A_OverlayOffset(8,-1,-0.5,WOF_ADD|WOF_INTERPOLATE);
+		TNT1 A 0 
+		{
+			A_OverlayOffset(8,0,0,WOF_INTERPOLATE);
+			A_OverlayOffset(7,0,0,WOF_INTERPOLATE);
+		}
+		goto ready.akimbo;
+		
+	fire.akimbo.l:
+		TNT1 A 0 
+		{
+			A_OverlayOffset(8,0,0,WOF_INTERPOLATE);
+			A_OverlayOffset(7,0,0,WOF_INTERPOLATE);
+		}
+		TNT1 A 1 
+		{
+			A_OverlayOffset(7,1,0.5,WOF_ADD|WOF_INTERPOLATE);
+		}
+		TNT1 AAAAAA 1 A_OverlayOffset(7,2,1,WOF_ADD|WOF_INTERPOLATE);
+		TNT1 AAAAAAAAAAAA 1 A_OverlayOffset(7,-1,-0.5,WOF_ADD|WOF_INTERPOLATE);
+		TNT1 A 0 
+		{
+			A_OverlayOffset(8,0,0,WOF_INTERPOLATE);
+			A_OverlayOffset(7,0,0,WOF_INTERPOLATE);
+		}
+		goto ready.akimbo;
+	
+	Altfire:
+		MML0 A 0 A_JumpIf(invoker.secondarymode<1,"akimbo.start");
+		#### # 1;
+		goto ready;
+	akimbo.start:
+		MML0 A 1 A_Overlay(7,"akimbo.r.raise",true);
+		MML0 A 0 
+		{
+			A_Overlay(7,"akimbo.r.raise",true);
+			A_Overlay(8,"akimbo.l.raise",true);
+			A_OverlayOffset(8,0,84);
+			invoker.secondarymode=1;
+			//A_OverlayFlags(7,PSPF_ADDWEAPON|PSPF_ADDBOB,true);
+			//A_OverlayFlags(8,PSPF_FLIP|PSPF_MIRROR,true);
+		}
+		TNT1 AAAAAAAAAAAA 1 
+		{
+			A_OverlayOffset(7,0,0,WOF_ADD);
+			A_OverlayOffset(8,0,-7,WOF_ADD);
+		}
+		goto ready.akimbo;
+	ready.akimbo:
+		TNT1 A 1 
+		{
+			A_WeaponReady(WRF_NOFIRE);invoker.isreloading=0;
+			A_OverlayOffset(7,0,0,WOF_INTERPOLATE);
+			A_OverlayOffset(8,0,0,WOF_INTERPOLATE);
+			invoker.isattacking=0;
+		}//A_WeaponReady(ZRF_NOPRIMARY|ZRF_NOSECONDARY);
+		loop;
+		
+	// - Right -
+	akimbo.r.raise:
+		44MC A 0 
+		{
+			//A_OverlayOffset(8,32,64);
+			A_OverlayFlags(7,PSPF_ADDWEAPON,true);
+		}
+		MML0 A 12;
+	akimbo.r.ready:
+		MML0 A 1
+		{
+			//A_WeaponReady(WRF_NOFIRE);
+			if(invoker.isattacking<1 
+			&& invoker.IsPressing(BT_ATTACK))
+			{PB_SetWeaponState("akimbo.r.fire",7);}
+		}
+		loop;
+	akimbo.r.fire:
+		NML0 A 0 {invoker.isattacking++;PB_SetWeaponState("fire.akimbo.r");A_Overlay(15,"Attack.Left");}
+		MML0 BCDD 1 PB_RecoilAnimR(2);
+		MML0 D 1;
+		MML0 EFHC 3;
+		MML0 BBB 1
+		{
+			if(invoker.IsPressing(BT_ALTATTACK))
+			{PB_SetWeaponState("akimbo.l.fire",8);PB_SetWeaponState("akimbo.r.ready",7);}
+		}
+		Goto akimbo.r.ready;
+	// - Right -
+	akimbo.l.raise:
+		MML0 A 0 
+		{
+			//A_OverlayOffset(8,32,64);
+			A_OverlayFlags(8,PSPF_ADDWEAPON|PSPF_FLIP|PSPF_MIRROR,true);
+		}
+		MML0 A 12;
+	akimbo.l.ready:
+		MML0 A 1
+		{
+			if(invoker.isattacking<1 
+			&& invoker.IsPressing(BT_ALTATTACK))
+			{PB_SetWeaponState("akimbo.l.fire",8);}
+		}
+		loop;
+	akimbo.l.fire:
+		NML0 A 0 {invoker.isattacking++;PB_SetWeaponState("fire.akimbo.l");A_Overlay(15,"Attack.Left");}
+		MML0 BCDD 1 PB_RecoilAnimL(2);
+		MML0 D 1;
+		MML0 EFHC 3;
+		MML0 BBB 1
+		{
+			if(invoker.IsPressing(BT_ATTACK))
+			{PB_SetWeaponState("akimbo.r.fire",7);PB_SetWeaponState("akimbo.l.ready",8);}
+		}
+		Goto akimbo.l.ready;
+    }
+}
+
+class MarPunched : Inventory
+{
+    Default
+    {
+     Inventory.MaxAmount 5;
+     -INVENTORY.INVBAR
+    }
+}

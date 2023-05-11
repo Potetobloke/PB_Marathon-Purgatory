@@ -1,0 +1,7 @@
+GameInfo
+{
+    PlayerClasses = "MarSecurityOfficer"
+   StatusBarClass = "PB_MarsBar"
+    AddEventHandlers = "ZCasingKiller", "ZFlatDecalKiller", "PB_MarathonGuns_Spawn"
+	AirControl = 1.0
+}

@@ -1,0 +1,14 @@
+marathon/items/teleport			"Sounds/Items/SpawnIn.wav" 
+
+$limit marathon/items/teleport 16
+
+marathon/items/generic			"Sounds/Items/PickupGen.wav"
+$volume marathon/items/generic 0.5
+
+marathon/items/weapon			"Sounds/Items/PickupGen.wav"
+marathon/items/ammo				"Sounds/Items/PickupGen.wav"
+
+marathon/items/health			"Sounds/Items/PickupGen.wav"
+marathon/items/bighealth		"Sounds/Items/PickupPower.wav"
+marathon/items/powerup			"Sounds/Items/PickupPower.wav"
+marathon/items/armor			"Sounds/Items/PickupPower.wav"

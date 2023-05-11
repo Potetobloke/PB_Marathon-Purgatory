@@ -1,0 +1,13 @@
+server bool mar_projectileguns		=	true;
+server bool mar_extraweapons		=	false;
+server bool mar_lowriflerof			=	true;
+server bool mar_oldrifleanim		=	false;
+server bool mar_oldflameranim		=	false;
+server bool mar_spawnanim			=	true;
+
+server int	mar_casingdist			=	2048;
+server int	mar_decaldist			=	1024;
+
+server int zwl_maxflatdecals		=	1024;
+server int zwl_maxcasings			=	1024;
+server bool mar_autoreload			=	true;
